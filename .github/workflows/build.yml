@@ -1,0 +1,39 @@
+name: بناء تطبيق أندرويد
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: تنزيل الكود
+        uses: actions/checkout@v4
+
+      - name: فك ضغط المشروع
+        run: |
+          unzip -o VoiceAssistantAveugles.zip -d extracted_project
+          cp -r extracted_project/VoiceAssistantAveugles/* .
+          rm -rf extracted_project VoiceAssistantAveugles.zip
+
+      - name: إعداد Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: توليد Gradle Wrapper
+        run: gradle wrapper --gradle-version 8.4
+
+      - name: بناء APK
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: رفع ملف APK كمرفق
+        uses: actions/upload-artifact@v4
+        with:
+          name: VoiceAssistantAveugles-APK
+          path: app/build/outputs/apk/debug/app-debug.apk
